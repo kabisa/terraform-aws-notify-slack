@@ -1,17 +1,17 @@
 data "aws_sns_topic" "this" {
-  count = "${(1 - var.create_sns_topic) * var.create}"
+  count = "${var.sns_topic_arn == "" ? 0 : ((1 - var.create_sns_topic) * var.create)}"
 
   name = "${var.sns_topic_name}"
 }
 
 resource "aws_sns_topic" "this" {
-  count = "${var.create_sns_topic * var.create}"
+  count = "${(var.sns_topic_arn == "" ? 0 : var.create_sns_topic * var.create)}"
 
   name = "${var.sns_topic_name}"
 }
 
 locals {
-  sns_topic_arn = "${element(concat(aws_sns_topic.this.*.arn, data.aws_sns_topic.this.*.arn, list("")), 0)}"
+  sns_topic_arn = "${(var.sns_topic_arn == "" ? var.sns_topic_arn : element(concat(aws_sns_topic.this.*.arn, data.aws_sns_topic.this.*.arn, list("")), 0))}"
 }
 
 resource "aws_sns_topic_subscription" "sns_notify_slack" {
