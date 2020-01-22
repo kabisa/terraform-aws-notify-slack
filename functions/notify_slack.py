@@ -19,7 +19,7 @@ def notify_slack(subject, message, region):
     if not slack_url.startswith("http"):
         slack_url = decrypt(slack_url)
 
-    slack_channels = json.loads(os.environ['SLACK_CHANNELS'])
+    slack_channels = os.environ['SLACK_CHANNELS'].replace(' ', '').split(",")
     slack_username = os.environ['SLACK_USERNAME']
     slack_emoji = os.environ['SLACK_EMOJI']
 

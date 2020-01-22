@@ -1,5 +1,5 @@
 data "aws_iam_policy_document" "assume_role" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   statement {
     effect = "Allow"
@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 data "aws_iam_policy_document" "lambda_basic" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   statement {
     sid = "AllowWriteToCloudwatchLogs"
@@ -32,7 +32,7 @@ data "aws_iam_policy_document" "lambda_basic" {
 }
 
 data "aws_iam_policy_document" "lambda" {
-  count = var.create_with_kms_key == 1 ? 1 : 0 * var.create
+  count = var.create_with_kms_key == 1 ? 1 : 0 * (var.create ? 1 : 0)
 
   source_json = data.aws_iam_policy_document.lambda_basic[0].json
 
@@ -48,14 +48,14 @@ data "aws_iam_policy_document" "lambda" {
 }
 
 resource "aws_iam_role" "lambda" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   name_prefix        = "lambda"
   assume_role_policy = data.aws_iam_policy_document.assume_role[0].json
 }
 
 resource "aws_iam_role_policy" "lambda" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   name_prefix = "lambda-policy-"
   role        = aws_iam_role.lambda[0].id
@@ -70,4 +70,3 @@ resource "aws_iam_role_policy" "lambda" {
     0,
   )
 }
-

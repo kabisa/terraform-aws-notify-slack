@@ -1,11 +1,11 @@
 data "aws_sns_topic" "this" {
-  count = var.create_sns_topic * var.create
+  count = (var.create_sns_topic ? 1 : 0) * (var.create ? 1 : 0)
 
   name = var.sns_topic_name
 }
 
 resource "aws_sns_topic" "this" {
-  count = var.create_sns_topic * var.create
+  count = (var.create_sns_topic ? 1 : 0) * (var.create ? 1 : 0)
 
   name = var.sns_topic_name
 }
@@ -22,7 +22,7 @@ locals {
 }
 
 resource "aws_sns_topic_subscription" "sns_notify_slack" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   topic_arn = local.sns_topic_arn
   protocol  = "lambda"
@@ -30,7 +30,7 @@ resource "aws_sns_topic_subscription" "sns_notify_slack" {
 }
 
 resource "aws_lambda_permission" "sns_notify_slack" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
@@ -41,26 +41,18 @@ resource "aws_lambda_permission" "sns_notify_slack" {
 
 data "null_data_source" "lambda_file" {
   inputs = {
-    filename = substr(
-      "${path.module}/functions/notify_slack.py",
-      length(path.cwd) + 1,
-      -1,
-    )
+    filename = "${path.module}/functions/notify_slack.py"
   }
 }
 
 data "null_data_source" "lambda_archive" {
   inputs = {
-    filename = substr(
-      "${path.module}/functions/notify_slack.zip",
-      length(path.cwd) + 1,
-      -1,
-    )
+    filename = "${path.module}/functions/notify_slack.zip"
   }
 }
 
 data "archive_file" "notify_slack" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   type        = "zip"
   source_file = data.null_data_source.lambda_file.outputs.filename
@@ -68,7 +60,7 @@ data "archive_file" "notify_slack" {
 }
 
 resource "aws_lambda_function" "notify_slack" {
-  count = var.create
+  count = var.create ? 1 : 0
 
   filename = data.archive_file.notify_slack[0].output_path
 
@@ -84,7 +76,7 @@ resource "aws_lambda_function" "notify_slack" {
   environment {
     variables = {
       SLACK_WEBHOOK_URL = var.slack_webhook_url
-      SLACK_CHANNELS    = var.slack_channels
+      SLACK_CHANNELS    = join(",", var.slack_channels)
       SLACK_USERNAME    = var.slack_username
       SLACK_EMOJI       = var.slack_emoji
     }
@@ -94,4 +86,3 @@ resource "aws_lambda_function" "notify_slack" {
     ignore_changes = [last_modified]
   }
 }
-
