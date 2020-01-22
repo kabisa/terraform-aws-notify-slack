@@ -22,9 +22,9 @@ module "notify_slack" {
 
   sns_topic_name = "slack-topic"
 
-  slack_webhook_url = "https://hooks.slack.com/services/AAA/BBB/CCC"
-  slack_channel     = "aws-notification"
-  slack_username    = "reporter"
+  slack_webhook_url  = "https://hooks.slack.com/services/AAA/BBB/CCC"
+  slack_channels     = ["aws-notification"]
+  slack_username     = "reporter"
 }
 ```
 
